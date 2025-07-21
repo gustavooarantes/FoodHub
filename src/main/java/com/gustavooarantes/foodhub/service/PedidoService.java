@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidoService {
@@ -75,5 +76,40 @@ public class PedidoService {
                 pedidoSalvo.getValorTotal(),
                 pedidoSalvo.getDataCriacao()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponseDto> listarTodosOsPedidos() {
+        return pedidoRepository.findAllByOrderByDataCriacaoDesc().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponseDto> listarPedidosDoCliente(String username) {
+        return pedidoRepository.findByClienteUsernameOrderByDataCriacaoDesc(username).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    private PedidoResponseDto mapToDto(Pedido pedido) {
+        return new PedidoResponseDto(
+                pedido.getId(),
+                pedido.getCliente().getUsername(),
+                pedido.getStatus(),
+                pedido.getValorTotal(),
+                pedido.getDataCriacao()
+        );
+    }
+
+    @Transactional
+    public PedidoResponseDto atualizarStatus(Long pedidoId, StatusPedido novoStatus) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com id: " + pedidoId));
+
+        pedido.setStatus(novoStatus);
+        Pedido pedidoAtualizado = pedidoRepository.save(pedido);
+
+        return mapToDto(pedidoAtualizado);
     }
 }
