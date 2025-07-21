@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: foodhub-api-service
+spec:
+  selector:
+    app: foodhub-api
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foodhub-api-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: foodhub-api
+  template:
+    metadata:
+      labels:
+        app: foodhub-api
+    spec:
+      containers:
+        - name: foodhub-api-container
+          image: gustavooarantes/foodhub:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-db:5432/foodhub_db"
+            - name: SPRING_DATA_REDIS_HOST
+              value: "redis-cache"
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq-mq"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "user"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+            - name: SPRING_RABBITMQ_USERNAME
+              value: "user"
+            - name: SPRING_RABBITMQ_PASSWORD
+              value: "password"
