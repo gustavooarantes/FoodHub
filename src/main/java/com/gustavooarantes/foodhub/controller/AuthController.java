@@ -1,5 +1,7 @@
 package com.gustavooarantes.foodhub.controller;
 
+import com.gustavooarantes.foodhub.dto.JwtAuthResponseDto;
+import com.gustavooarantes.foodhub.dto.LoginDto;
 import com.gustavooarantes.foodhub.dto.RegisterDto;
 import com.gustavooarantes.foodhub.service.AuthService;
 import jakarta.validation.Valid;
@@ -21,5 +23,11 @@ public class AuthController {
     public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterDto registerDto) {
         authService.registerUser(registerDto);
         return new ResponseEntity<>("Usuário registrado com sucesso!", HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<JwtAuthResponseDto> login(@Valid @RequestBody LoginDto loginDto){
+        JwtAuthResponseDto jwtAuthResponseDto = authService.login(loginDto);
+        return ResponseEntity.ok(jwtAuthResponseDto);
     }
 }
