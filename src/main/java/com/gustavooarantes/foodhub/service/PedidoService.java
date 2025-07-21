@@ -6,6 +6,7 @@ import com.gustavooarantes.foodhub.domain.Pedido;
 import com.gustavooarantes.foodhub.domain.Produto;
 import com.gustavooarantes.foodhub.domain.User;
 import com.gustavooarantes.foodhub.domain.enums.StatusPedido;
+import com.gustavooarantes.foodhub.dto.NotificacaoDto;
 import com.gustavooarantes.foodhub.dto.PedidoRequestDto;
 import com.gustavooarantes.foodhub.dto.PedidoResponseDto;
 import com.gustavooarantes.foodhub.repository.PedidoRepository;
@@ -15,6 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 @Service
 public class PedidoService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PedidoService.class);
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
     private final UserRepository userRepository;
@@ -109,6 +113,17 @@ public class PedidoService {
 
         pedido.setStatus(novoStatus);
         Pedido pedidoAtualizado = pedidoRepository.save(pedido);
+
+        String emailCliente = pedidoAtualizado.getCliente().getEmail();
+        String assunto = "Atualização do seu Pedido #" + pedidoAtualizado.getId();
+        String mensagem = "Olá, " + pedidoAtualizado.getCliente().getUsername() +
+                "! O status do seu pedido foi atualizado para: " + novoStatus.toString();
+
+        NotificacaoDto notificacao = new NotificacaoDto(emailCliente, assunto, mensagem);
+
+        logger.info("Publicando notificação para o pedido {}", pedidoId);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_NOTIFICACOES, notificacao);
+
 
         return mapToDto(pedidoAtualizado);
     }
