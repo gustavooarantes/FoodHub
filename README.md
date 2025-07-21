@@ -1,7 +1,7 @@
 # FoodHub - Restaurant Management API
 ## Developer: Gustavo Arantes
 
-A robust RESTful API to simulate a restaurant's order and management system, incorporating a modern architecture with microservices, messaging, caching, and a full CI/CD pipeline.
+A robust RESTful API to simulate a restaurant's order and management system.
 
 ---
 ## Project Structure
